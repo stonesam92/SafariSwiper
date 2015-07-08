@@ -1,0 +1,9 @@
+Package: com.samstone.safariswiper
+Name: SafariSwiper
+Depends: mobilesubstrate
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: Quickly swipe between existing tabs in Safari!
+Maintainer: Sam Stone
+Author: Sam Stone
+Section: Tweaks

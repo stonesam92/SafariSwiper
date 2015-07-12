@@ -1,7 +1,9 @@
 #import <UIKit/UIKit.h>
 #import "interface.h"
+#import "CKBlurView.h"
+#import <QuartzCore/QuartzCore.h>
 
-static UIView *leftOverlay, *rightOverlay;
+extern NSString * const kCAFilterGaussianBlur;
 
 %hook TabController
 %new
@@ -45,37 +47,20 @@ static UIView *leftOverlay, *rightOverlay;
 %new
 - (void)didPan:(UIPanGestureRecognizer *)sender {
     UIBarButtonItem *bookmarks = MSHookIvar<UIBarButtonItem *>(self, "_bookmarksItem");
-    if (sender.state == UIGestureRecognizerStateBegan) {
-        bookmarks.enabled = NO;
-        [self setActionEnabled:NO];
-    } else if (sender.state == UIGestureRecognizerStateCancelled ||
+    if (sender.state == UIGestureRecognizerStateCancelled ||
             sender.state == UIGestureRecognizerStateEnded ||
             sender.state == UIGestureRecognizerStateFailed) {
         bookmarks.enabled = YES;
         [self setActionEnabled:YES];
+    } else {
+        bookmarks.enabled = NO;
+        [self setActionEnabled:NO];
     }
 }
-
 
 %end
 
 %hook BrowserController
-- (BrowserController *)init {
-    self = %orig;
-    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                            selector:@selector(didRotate:)
-                                                name:UIDeviceOrientationDidChangeNotification
-                                              object:nil];
-    return self;
-}
-
-%new
-- (void)didRotate:(NSNotification *)notification {
-    leftOverlay.frame = CGRectZero;
-    rightOverlay.frame = CGRectZero;
-}
-
 %new
 - (void)didPan:(UIPanGestureRecognizer *)gr {
     UIView *pageView = MSHookIvar<UIView *>(self, "_pageView");
@@ -113,43 +98,48 @@ static UIView *leftOverlay, *rightOverlay;
 
 %new
 - (void)setupOverlays {
-    static dispatch_once_t onceToken;
-    CGFloat sbHeight = [UIApplication sharedApplication].statusBarFrame.size.height;
+    [[UIApplication sharedApplication] _setApplicationIsOpaque:NO];
+    [UIApplication sharedApplication].keyWindow.backgroundColor = [UIColor clearColor];
+
     UIView *pageView = MSHookIvar<UIView *>(self, "_pageView");
-
-    dispatch_once(&onceToken, ^{
-        UIImage *texture = [UIImage imageWithContentsOfFile:@"/Library/Application Support/SafariSwiper/texture.png"];
-
-        leftOverlay = [[UIView alloc] initWithFrame:CGRectZero];
-        rightOverlay = [[UIView alloc] initWithFrame:CGRectZero];
-
-        leftOverlay.backgroundColor = [[UIColor alloc] initWithPatternImage:texture];
-        rightOverlay.backgroundColor = [[UIColor alloc] initWithPatternImage:texture];
-
-        //leftOverlay.backgroundColor = [UIColor colorWithWhite:0.8 alpha:1];
-        //rightOverlay.backgroundColor = [UIColor colorWithWhite:0.8 alpha:1];
-
-        [pageView addSubview:leftOverlay];
-        [pageView addSubview:rightOverlay];
-    });
-
-    CGRect leftFrame = pageView.bounds;
-    CGRect rightFrame = pageView.bounds;
-
-    leftFrame.origin.x = -leftFrame.size.width;
-    leftFrame.origin.y = -sbHeight;
-    leftFrame.size.height += sbHeight;
-
-    rightFrame.origin.x = rightFrame.size.width;
-    rightFrame.origin.y = -sbHeight;
-    rightFrame.size.height += sbHeight;
-
-    leftOverlay.frame = leftFrame;
-    rightOverlay.frame = rightFrame;
-
-    NSLog(@"setup views: %@", rightOverlay);
-
+    for (UIView *view in pageView.subviews) {
+        if ([view isKindOfClass:[UIScrollView class]])
+            view.clipsToBounds = YES;
+    }
+    return;
 }
 
 %end
 
+%hook MobileSafariWindow
+
++ (Class)layerClass {
+    return [CABackdropLayer class];
+}
+
+- (id)initWithFrame:(CGRect)frame {
+    self = %orig;
+    [self commonInit];
+    return self;
+}
+
+- (id)initWithCoder:(NSCoder *)coder {
+    self = %orig;
+    [self commonInit];
+    return self;
+}
+
+%new
+- (void)commonInit {
+    CKBlurView *blurView = [[CKBlurView alloc] initWithFrame:self.bounds];
+    blurView.translatesAutoresizingMaskIntoConstraints = NO;
+    [self addSubview:blurView];
+    [self sendSubviewToBack:blurView];
+    for (NSString *constraintString in @[@"|-(0)-[blurView]-(0)-|", @"V:|-(0)-[blurView]-(0)-|"]) {
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:constraintString 
+                     options:0
+                     metrics:nil
+                       views:@{@"blurView" : blurView}]];
+    }
+}
+%end

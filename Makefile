@@ -6,10 +6,11 @@ ARCHS = armv7 arm64 armv7s
 include theos/makefiles/common.mk
 
 TWEAK_NAME = SafariSwiper
-SafariSwiper_FILES = Tweak.xm
-SafariSwiper_FRAMEWORKS = UIKit
+SafariSwiper_FILES = Tweak.xm CKBlurView.m
+SafariSwiper_FRAMEWORKS = UIKit QuartzCore CoreGraphics
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
 after-install::
 	install.exec "killall -9 MobileSafari"
+include $(THEOS_MAKE_PATH)/aggregate.mk

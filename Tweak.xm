@@ -47,13 +47,16 @@ extern NSString * const kCAFilterGaussianBlur;
 %new
 - (void)didPan:(UIPanGestureRecognizer *)sender {
     UIBarButtonItem *bookmarks = MSHookIvar<UIBarButtonItem *>(self, "_bookmarksItem");
+    UIBarButtonItem *newTab = MSHookIvar<UIBarButtonItem *>(self, "_addTabItem");
     if (sender.state == UIGestureRecognizerStateCancelled ||
             sender.state == UIGestureRecognizerStateEnded ||
             sender.state == UIGestureRecognizerStateFailed) {
         bookmarks.enabled = YES;
+        newTab.enabled = YES;
         [self setActionEnabled:YES];
     } else {
         bookmarks.enabled = NO;
+        newTab.enabled = NO;
         [self setActionEnabled:NO];
     }
 }

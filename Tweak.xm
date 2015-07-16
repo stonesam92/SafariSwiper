@@ -3,7 +3,7 @@
 #import "CKBlurView.h"
 #import <QuartzCore/QuartzCore.h>
 
-extern NSString * const kCAFilterGaussianBlur;
+static BOOL tabLoopingEnabled = YES;
 
 %hook TabController
 %new
@@ -12,10 +12,15 @@ extern NSString * const kCAFilterGaussianBlur;
     TabDocument *activeTab = [self activeTabDocument];
     int currentIndex = [currentTabs indexOfObject:activeTab];
     int targetIndex = currentIndex + (direction == SSDirectionLeft ? -1 : 1);
-    if (targetIndex == -1 || targetIndex == currentTabs.count) {
+
+    if (targetIndex >= 0 && targetIndex < currentTabs.count) 
+        return currentTabs[targetIndex];
+    else if (tabLoopingEnabled && targetIndex == -1)
+        return currentTabs[currentTabs.count-1];
+    else if (tabLoopingEnabled && targetIndex == currentTabs.count)
+        return currentTabs[0];
+    else
         return nil;
-    }
-    return currentTabs[targetIndex];
 }
 
 %new
@@ -66,7 +71,7 @@ extern NSString * const kCAFilterGaussianBlur;
 %hook BrowserController
 %new
 - (void)didPan:(UIPanGestureRecognizer *)gr {
-    UIView *pageView = MSHookIvar<UIView *>(self, "_pageView");
+    UIView *pageView = MSHookIvar<UIView *>(self, "_scrollView").superview.superview;
     CGPoint translation = [gr translationInView:gr.view];
     SSTabChangeDirection direction = translation.x < 0 ? SSDirectionRight : SSDirectionLeft;
     CGRect newFrame = pageView.frame;
@@ -101,48 +106,34 @@ extern NSString * const kCAFilterGaussianBlur;
 
 %new
 - (void)setupOverlays {
-    [[UIApplication sharedApplication] _setApplicationIsOpaque:NO];
-    [UIApplication sharedApplication].keyWindow.backgroundColor = [UIColor clearColor];
-
-    UIView *pageView = MSHookIvar<UIView *>(self, "_pageView");
-    for (UIView *view in pageView.subviews) {
-        if ([view isKindOfClass:[UIScrollView class]])
-            view.clipsToBounds = YES;
-    }
-    return;
+    UIView *pageView = MSHookIvar<UIView *>(self, "_scrollView").superview;
+    pageView.clipsToBounds = YES;
 }
 
 %end
 
 %hook MobileSafariWindow
-
-+ (Class)layerClass {
-    return [CABackdropLayer class];
-}
-
 - (id)initWithFrame:(CGRect)frame {
     self = %orig;
-    [self commonInit];
+    [self setBackgroundColor:[UIColor clearColor]];
+    [[UIApplication sharedApplication] _setApplicationIsOpaque:NO];
     return self;
 }
 
 - (id)initWithCoder:(NSCoder *)coder {
     self = %orig;
-    [self commonInit];
+    [self setBackgroundColor:[UIColor clearColor]];
+    [[UIApplication sharedApplication] _setApplicationIsOpaque:NO];
     return self;
 }
 
-%new
-- (void)commonInit {
-    CKBlurView *blurView = [[CKBlurView alloc] initWithFrame:self.bounds];
-    blurView.translatesAutoresizingMaskIntoConstraints = NO;
-    [self addSubview:blurView];
-    [self sendSubviewToBack:blurView];
-    for (NSString *constraintString in @[@"|-(0)-[blurView]-(0)-|", @"V:|-(0)-[blurView]-(0)-|"]) {
-        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:constraintString 
-                     options:0
-                     metrics:nil
-                       views:@{@"blurView" : blurView}]];
-    }
+- (void)setBackgroundColor:(UIColor *)color {
+    %orig([UIColor clearColor]);
+}
+%end
+
+%hook UIApplication
+- (void)_setBackgroundStyle:(long long)arg1 {
+    %orig(UIBackgroundStyleDarkTranslucent);
 }
 %end

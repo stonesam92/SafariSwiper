@@ -26,3 +26,22 @@ typedef enum {
 + (id)sharedBrowserController;
 - (void)setupOverlays;
 @end
+
+@interface MobileSafariWindow : UIWindow
+- (void)commonInit;
+@end
+
+@interface CABackdropLayer : CALayer
+@end
+
+typedef enum _UIBackgroundStyle {
+	UIBackgroundStyleDefault,
+	UIBackgroundStyleTransparent,
+	UIBackgroundStyleLightBlur,
+	UIBackgroundStyleDarkBlur,
+	UIBackgroundStyleDarkTranslucent
+} UIBackgroundStyle;
+ 
+@interface UIApplication (UIBackgroundStyle)
+-(void)_setBackgroundStyle:(UIBackgroundStyle)style;
+@end

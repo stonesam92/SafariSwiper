@@ -1,0 +1,10 @@
+{
+    entry = {
+	bundle = SafariSwiperPrefs;
+	cell = PSLinkCell;
+	detail = SafariSwiperPrefsListController;
+	icon = SafariSwiperPrefs.png;
+	isController = 1;
+	label = SafariSwiper;
+    };
+}

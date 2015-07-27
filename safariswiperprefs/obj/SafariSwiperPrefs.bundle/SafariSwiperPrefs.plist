@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Changes have effect when you relaunch Safari</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.samstone.safariswiper</string>
+			<key>key</key>
+			<string>loopPages</string>
+			<key>label</key>
+            <string>Loop between first and last tab</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Swipe Sensitivity</string>
+		</dict>
+		<dict>
+            <key>cell</key>
+            <string>PSSliderCell</string>
+            <key>max</key>
+            <real>2.0</real>
+            <key>min</key>
+            <real>0.5</real>
+            <key>showValue</key>
+            <false/>
+            <key>isContinuous</key>
+            <true/>
+            <key>key</key>
+            <string>sensitivity</string>
+            <key>defaults</key>
+            <string>com.samstone.safariswiper</string>
+            <key>default</key>
+            <real>1.0</real>
+        </dict>
+	</array>
+	<key>title</key>
+	<string>SafariSwiperPrefs</string>
+</dict>
+</plist>

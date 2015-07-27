@@ -6,7 +6,9 @@ typedef enum {
     SSDirectionRight
 } SSTabChangeDirection;
 
-@class TabDocument;
+@interface TabDocument
+- (NSString *)URLString;
+@end
 
 @interface BrowserToolbar : UIToolbar
 - (void)setActionEnabled:(BOOL)enabled;
@@ -25,6 +27,7 @@ typedef enum {
 - (TabController *)tabController;
 + (id)sharedBrowserController;
 - (void)setupOverlays;
+- (UIView *)newTabView;
 @end
 
 @interface MobileSafariWindow : UIWindow
@@ -43,5 +46,6 @@ typedef enum _UIBackgroundStyle {
 } UIBackgroundStyle;
  
 @interface UIApplication (UIBackgroundStyle)
--(void)_setBackgroundStyle:(UIBackgroundStyle)style;
+- (void)_setBackgroundStyle:(UIBackgroundStyle)style;
+- (void)_setApplicationIsOpaque:(BOOL)opaque;
 @end

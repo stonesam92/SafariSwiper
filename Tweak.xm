@@ -2,8 +2,12 @@
 #import "interface.h"
 #import "CKBlurView.h"
 #import <QuartzCore/QuartzCore.h>
+#import "substrate.h"
 
 static BOOL tabLoopingEnabled = YES;
+static float sensitivity = 1.0;
+
+#define PREFS_LOCATION @"/var/mobile/Library/Preferences/com.samstone.safariswiper.plist"
 
 %hook TabController
 %new
@@ -69,9 +73,26 @@ static BOOL tabLoopingEnabled = YES;
 %end
 
 %hook BrowserController
+%new 
+- (UIView *)newTabView {
+    UIView *newTabView;
+    UIView *pageView = MSHookIvar<UIView *>(self, "_pageView");
+    for (UIView *subview in pageView.subviews) {
+        if ([subview isKindOfClass:[UIScrollView class]]) continue;
+        if ([subview isKindOfClass:[%c(NavigationBar) class]]) continue;
+        newTabView = subview;
+    }
+
+    return newTabView;
+}
+
 %new
 - (void)didPan:(UIPanGestureRecognizer *)gr {
     UIView *pageView = MSHookIvar<UIView *>(self, "_scrollView").superview.superview;
+    UIView *newTabView = nil;
+    if (![[self.tabController activeTabDocument] URLString]) {
+        newTabView = [self newTabView];
+    }
     CGPoint translation = [gr translationInView:gr.view];
     SSTabChangeDirection direction = translation.x < 0 ? SSDirectionRight : SSDirectionLeft;
     CGRect newFrame = pageView.frame;
@@ -86,8 +107,9 @@ static BOOL tabLoopingEnabled = YES;
         [UIView animateWithDuration:0.2
                         animations:^{
                             pageView.frame = newFrame;
+                            newTabView.frame = newFrame;
                             }];
-    } else if (ABS(translation.x) > pageView.frame.size.width * 0.45) {
+    } else if (ABS(translation.x * sensitivity) > pageView.frame.size.width * 0.5) {
         gr.enabled = NO;
         [self.tabController switchTabInDirection:direction];
         newFrame.origin.x = 0;
@@ -99,8 +121,9 @@ static BOOL tabLoopingEnabled = YES;
                             gr.enabled = YES;
                        }];
     } else {
-        newFrame.origin.x = translation.x * 1.2;
+        newFrame.origin.x = translation.x * sensitivity;
         pageView.frame = newFrame;
+        newTabView.frame = newFrame;
     }
 }
 
@@ -137,3 +160,20 @@ static BOOL tabLoopingEnabled = YES;
     %orig(UIBackgroundStyleDarkTranslucent);
 }
 %end
+
+//reload preferences 
+void reloadSettings(void) {
+    NSDictionary *prefs = [NSDictionary dictionaryWithContentsOfFile:PREFS_LOCATION];
+    NSNumber *sensitivityObj = prefs[@"sensitivity"];
+    NSNumber *loopPages = prefs[@"loopPages"];
+    sensitivity = sensitivityObj.floatValue;
+    tabLoopingEnabled = loopPages.boolValue;
+}
+
+%ctor {
+    reloadSettings();
+    CFNotificationCenterRef const center = CFNotificationCenterGetDarwinNotifyCenter();
+    CFStringRef identifier = (__bridge CFStringRef)@"com.samstone.safariswiper";
+    CFNotificationCenterAddObserver(center, NULL, (CFNotificationCallback)reloadSettings, 
+            identifier, NULL, CFNotificationSuspensionBehaviorCoalesce);
+}

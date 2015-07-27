@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>When enabled, it is possible to swipe between the first and last tabs.</string>
+			<key>label</key>
+			<string>Toggles</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.samstone.safariswiper</string>
+			<key>key</key>
+			<string>loopPages</string>
+			<key>label</key>
+            <string>Circular Tab List</string>
+            <key>PostNotification</key>
+			<string>com.samstone.safariswiper</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Sensitivity</string>
+            <key>footerText</key>
+            <string>Higher sensitivity values reduces the swipe distance required to trigger the tab switch action.</string>
+		</dict>
+		<dict>
+            <key>cell</key>
+            <string>PSSliderCell</string>
+            <key>max</key>
+            <real>2.0</real>
+            <key>min</key>
+            <real>0.7</real>
+            <key>showValue</key>
+            <false/>
+            <key>isContinuous</key>
+            <true/>
+            <key>key</key>
+            <string>sensitivity</string>
+            <key>defaults</key>
+            <string>com.samstone.safariswiper</string>
+            <key>default</key>
+            <real>1.2</real>
+            <key>PostNotification</key>
+			<string>com.samstone.safariswiper</string>
+        </dict>
+        <dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+            <string>Copyright 2015 Sam Stone</string>
+		</dict>
+	</array>
+    <key>icon</key>
+    <string>SafariSwiperPrefs</string>
+	<key>title</key>
+	<string>SafariSwiper</string>
+</dict>
+</plist>
